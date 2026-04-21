@@ -26,7 +26,7 @@ app.use('/api/payments', paymentRoutes);
 
 // Base route
 app.get('/', (req, res) => {
-    res.send('🎬 Movie Magic API is running...');
+    res.send('🎬 Movie Show API is running...');
 });
 
 const PORT = process.env.PORT || 5000;
