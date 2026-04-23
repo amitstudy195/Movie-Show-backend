@@ -271,6 +271,9 @@ exports.toggleLike = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         const { movieId } = req.body;
+        if (!movieId) {
+            return res.status(400).json({ message: "Movie ID is required for this protocol." });
+        }
         const mid = movieId.toString();
 
         if (user.likedMovies.includes(mid)) {
@@ -292,6 +295,9 @@ exports.submitRating = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         const { movieId, rating } = req.body;
+        if (!movieId) {
+            return res.status(400).json({ message: "Movie ID is required for rating." });
+        }
         const mid = movieId.toString();
 
         const existingRating = user.votedMovies.find(v => v.movieId === mid);
