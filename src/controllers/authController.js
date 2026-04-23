@@ -271,11 +271,12 @@ exports.toggleLike = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         const { movieId } = req.body;
+        const mid = movieId.toString();
 
-        if (user.likedMovies.includes(movieId)) {
-            user.likedMovies = user.likedMovies.filter(id => id !== movieId);
+        if (user.likedMovies.includes(mid)) {
+            user.likedMovies = user.likedMovies.filter(id => id !== mid);
         } else {
-            user.likedMovies.push(movieId);
+            user.likedMovies.push(mid);
         }
 
         await user.save();
@@ -291,12 +292,13 @@ exports.submitRating = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         const { movieId, rating } = req.body;
+        const mid = movieId.toString();
 
-        const existingRating = user.votedMovies.find(v => v.movieId === movieId);
+        const existingRating = user.votedMovies.find(v => v.movieId === mid);
         if (existingRating) {
-            existingRating.rating = rating;
+            existingRating.rating = Number(rating);
         } else {
-            user.votedMovies.push({ movieId, rating });
+            user.votedMovies.push({ movieId: mid, rating: Number(rating) });
         }
 
         await user.save();
