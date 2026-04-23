@@ -7,7 +7,9 @@ const {
     sendOTP, 
     verifyOTP,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    toggleLike,
+    submitRating
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -18,5 +20,7 @@ router.post('/verify-otp', verifyOTP);
 router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:resettoken', resetPassword);
 router.get('/profile', protect, getUserProfile);
+router.post('/like', protect, toggleLike);
+router.post('/rate', protect, submitRating);
 
 module.exports = router;

@@ -59,7 +59,12 @@ const userSchema = new mongoose.Schema({
     otp: String,
     otpExpires: Date,
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+    likedMovies: [String],
+    votedMovies: [{
+        movieId: String,
+        rating: Number
+    }]
 }, {
     timestamps: true
 });

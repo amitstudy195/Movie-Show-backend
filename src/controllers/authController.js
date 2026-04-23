@@ -264,3 +264,44 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ message: 'Password update failed' });
     }
 };
+
+// @desc    Toggle Like Movie
+// @route   POST /api/auth/like
+exports.toggleLike = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        const { movieId } = req.body;
+
+        if (user.likedMovies.includes(movieId)) {
+            user.likedMovies = user.likedMovies.filter(id => id !== movieId);
+        } else {
+            user.likedMovies.push(movieId);
+        }
+
+        await user.save();
+        res.json(user.likedMovies);
+    } catch (err) {
+        res.status(500).json({ message: 'Like action failed' });
+    }
+};
+
+// @desc    Submit Movie Rating
+// @route   POST /api/auth/rate
+exports.submitRating = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        const { movieId, rating } = req.body;
+
+        const existingRating = user.votedMovies.find(v => v.movieId === movieId);
+        if (existingRating) {
+            existingRating.rating = rating;
+        } else {
+            user.votedMovies.push({ movieId, rating });
+        }
+
+        await user.save();
+        res.json(user.votedMovies);
+    } catch (err) {
+        res.status(500).json({ message: 'Rating failed' });
+    }
+};
