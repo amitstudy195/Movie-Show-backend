@@ -1,11 +1,11 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const authRoutes = require('./routes/authRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
-const theaterRoutes = require('./routes/theaterRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
+const connectDB = require('./src/config/db');
+const authRoutes = require('./src/routes/authRoutes');
+const bookingRoutes = require('./src/routes/bookingRoutes');
+const theaterRoutes = require('./src/routes/theaterRoutes');
+const paymentRoutes = require('./src/routes/paymentRoutes');
 
 dotenv.config();
 
