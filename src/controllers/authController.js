@@ -43,6 +43,47 @@ exports.authUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        // Allows Guvi reviewers to log in without pre-setup
+        if (email === 'reviewer@guvi.com' && password === '123456') {
+            let reviewer = await User.findOne({ email });
+            if (!reviewer) {
+                reviewer = await User.create({
+                    name: 'Guvi Reviewer',
+                    email: 'reviewer@guvi.com',
+                    password: '123456',
+                    isAdmin: true
+                });
+            }
+            return res.json({
+                _id: reviewer._id,
+                name: reviewer.name,
+                email: reviewer.email,
+                isAdmin: reviewer.isAdmin,
+                token: generateToken(reviewer._id)
+            });
+        }
+
+        // Administrative Bypass for testing
+        if (email === 'admin@movieshow.com' && password === 'admin123') {
+            let adminUser = await User.findOne({ email });
+            if (!adminUser) {
+                adminUser = await User.create({
+                    name: 'Master Admin',
+                    email: 'admin@movieshow.com',
+                    password: 'admin123',
+                    isAdmin: true
+                });
+            }
+            return res.json({
+                _id: adminUser._id,
+                name: adminUser.name,
+                email: adminUser.email,
+                isAdmin: adminUser.isAdmin,
+                token: generateToken(adminUser._id)
+            });
+        }
+        // --- REVIEWER BYPASS END ---
+
         const user = await User.findOne({ email });
 
         if (user && (await user.matchPassword(password))) {

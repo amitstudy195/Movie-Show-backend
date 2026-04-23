@@ -6,8 +6,8 @@
 
 ## 🌟 Key Features
 
-### 🔐 Secure Multi-Channel Authentication
-- **Hybrid OTP System**: Multi-layered security using Nodemailer for Email verification and cryptographically secure tokens for Mobile authentication.
+### 🔐 Secure Authentication
+- **Email OTP System**: Specialized security using Nodemailer for Email verification and cryptographically secure tokens.
 - **Resend with Cooldown**: Professional security flow with 30-second cooldown timers to prevent spam and ensure delivery.
 
 ### 🗓️ Smart Booking & Date Tracking
@@ -37,7 +37,7 @@
 | **Backend** | Node.js, Express.js |
 | **Database** | MongoDB with Mongoose ODM |
 | **Security** | JWT, bcrypt.js, Crypto |
-| **Notifications** | Nodemailer (Email), Fast2SMS (Mobile) |
+| **Notifications** | Nodemailer (Email) |
 
 ---
 
@@ -52,17 +52,26 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/movie-show.git
-   cd movie-show
-   ```
+    cd movie-show
+    cd backend
+    ```
+
+### 🗝️ Test & Admin Credentials
+To review the full functionality without creating your own account:
+- **Reviewer Account**: `reviewer@guvi.com` / `123456`
+- **Admin Panel**: `admin@movieshow.com` / `admin123`
+
+> [!IMPORTANT]
+> **Render Cold Start**: This project is hosted on Render's free tier. If the site has not been visited recently, the backend may take **up to 60 seconds** to "wake up" on the first request. Please wait for the first response before testing features.
 
 2. **Backend Setup**
    ```bash
    cd backend
-   npm install
-   # Create a .env file based on .env.example
-   npm run dev
-   ```
+    npm install
+    # Create a .env file and copy values from .env.example
+    # Set MONGODB_URI and JWT_SECRET
+    npm run dev
+    ```
 
 3. **Frontend Setup**
    ```bash
