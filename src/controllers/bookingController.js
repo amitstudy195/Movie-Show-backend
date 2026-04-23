@@ -61,3 +61,14 @@ exports.cancelBooking = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// @desc    Get all bookings (Admin only)
+// @route   GET /api/bookings
+exports.getAllBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find({}).sort('-createdAt').populate('userId', 'name email');
+        res.json(bookings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
