@@ -6,6 +6,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const bookingRoutes = require('./src/routes/bookingRoutes');
 const theaterRoutes = require('./src/routes/theaterRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
+const scheduleRoutes = require('./src/routes/scheduleRoutes');
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/theaters', theaterRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 // Base route
 app.get('/', (req, res) => {

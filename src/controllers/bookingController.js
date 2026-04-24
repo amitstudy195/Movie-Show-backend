@@ -9,6 +9,7 @@ exports.createBooking = async (req, res) => {
 
         const booking = await Booking.create({
             userId: req.user._id,
+            userName: req.user.name,
             movieTitle,
             posterPath,
             theaterName,
@@ -66,7 +67,9 @@ exports.cancelBooking = async (req, res) => {
 // @route   GET /api/bookings
 exports.getAllBookings = async (req, res) => {
     try {
+        // Force-fetching EVERY booking in the network for Admin visibility
         const bookings = await Booking.find({}).sort('-createdAt').populate('userId', 'name email');
+        console.log(`📡 [ADMIN_SYNC] recovered ${bookings.length} total transactions from database.`);
         res.json(bookings);
     } catch (error) {
         res.status(500).json({ message: error.message });

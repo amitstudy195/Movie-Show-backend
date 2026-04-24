@@ -9,10 +9,12 @@ const {
     forgotPassword,
     resetPassword,
     toggleLike,
-    submitRating
+    submitRating,
+    getUsers
 } = require('../controllers/authController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 
+router.get('/', protect, admin, getUsers);
 router.post('/register', registerUser);
 router.post('/login', authUser);
 router.post('/send-otp', sendOTP);

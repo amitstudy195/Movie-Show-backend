@@ -46,3 +46,30 @@ exports.seedTheaters = async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 };
+
+// @desc    Update theater (Admin only)
+// @route   PUT /api/theaters/:id
+exports.updateTheater = async (req, res) => {
+    try {
+        const theater = await Theater.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+        if (!theater) return res.status(404).json({ message: 'Theater not found' });
+        res.json(theater);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+// @desc    Delete theater (Admin only)
+// @route   DELETE /api/theaters/:id
+exports.deleteTheater = async (req, res) => {
+    try {
+        const theater = await Theater.findByIdAndDelete(req.params.id);
+        if (!theater) return res.status(404).json({ message: 'Theater not found' });
+        res.json({ message: 'Theater deleted' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

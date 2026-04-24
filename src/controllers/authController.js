@@ -313,3 +313,16 @@ exports.submitRating = async (req, res) => {
         res.status(500).json({ message: 'Rating failed' });
     }
 };
+
+// @desc    Get all users (Admin only)
+// @route   GET /api/auth
+exports.getUsers = async (req, res) => {
+    try {
+        // System wide node recovery - Admin God Mode
+        const users = await User.find({}).select('-password');
+        console.log(`📋 [ADMIN_SYNC] recovered ${users.length} total user nodes from database.`);
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch user database' });
+    }
+};
