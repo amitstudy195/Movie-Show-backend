@@ -1,11 +1,42 @@
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 
+// Helper to parse "27 APR MON" and "10:30 AM" into a Date object
+const parseShowDateTime = (dateStr, timeStr) => {
+    try {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const [day, month] = dateStr.split(' '); // Ignore "MON"
+        
+        // Construct string like "27 APR 2026 10:30 AM"
+        const fullDateStr = `${day} ${month} ${currentYear} ${timeStr}`;
+        const showDate = new Date(fullDateStr);
+        
+        // Safety: If the resulting date is more than 6 months in the past, 
+        // it might be meant for next year (e.g. Booking in Dec for Jan)
+        if (now.getMonth() === 11 && showDate.getMonth() === 0) {
+            showDate.setFullYear(currentYear + 1);
+        }
+        
+        return showDate;
+    } catch (error) {
+        return null;
+    }
+};
+
 // @desc    Create new booking
 // @route   POST /api/bookings
 exports.createBooking = async (req, res) => {
     try {
         const { movieTitle, posterPath, theaterName, showtime, showDate, seats, totalPrice, bookingId } = req.body;
+
+        // Validation: Check if showtime has already passed
+        const showDateTime = parseShowDateTime(showDate, showtime);
+        if (showDateTime && showDateTime < new Date()) {
+            return res.status(400).json({ 
+                message: 'This show has already started or ended. Please select an upcoming screening.' 
+            });
+        }
 
         const booking = await Booking.create({
             userId: req.user._id,

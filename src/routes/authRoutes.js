@@ -10,13 +10,15 @@ const {
     resetPassword,
     toggleLike,
     submitRating,
-    getUsers
+    getUsers,
+    googleLogin
 } = require('../controllers/authController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.get('/', protect, admin, getUsers);
 router.post('/register', registerUser);
 router.post('/login', authUser);
+router.post('/google-login', googleLogin);
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp', verifyOTP);
 router.post('/forgot-password', forgotPassword);

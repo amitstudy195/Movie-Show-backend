@@ -1,5 +1,5 @@
+require('dotenv').config();
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/authRoutes');
@@ -7,8 +7,6 @@ const bookingRoutes = require('./src/routes/bookingRoutes');
 const theaterRoutes = require('./src/routes/theaterRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const scheduleRoutes = require('./src/routes/scheduleRoutes');
-
-dotenv.config();
 
 // Connect to Database
 connectDB();
@@ -26,9 +24,15 @@ app.use('/api/theaters', theaterRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/schedules', scheduleRoutes);
 
-// Base route
+// Base route with Health Check
 app.get('/', (req, res) => {
-    res.send('🎬 Movie Show API is running...');
+    const mongoose = require('mongoose');
+    const dbStatus = mongoose.connection.readyState === 1 ? 'CONNECTED' : 'DISCONNECTED';
+    res.json({
+        message: '🎬 Movie Show API is running...',
+        database: dbStatus,
+        mode: process.env.NODE_ENV || 'development'
+    });
 });
 
 const PORT = process.env.PORT || 5000;

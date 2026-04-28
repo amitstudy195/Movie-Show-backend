@@ -108,6 +108,53 @@ exports.authUser = async (req, res) => {
     }
 };
 
+// @desc    Google OAuth Sync & Login
+// @route   POST /api/auth/google-login
+// @access  Public
+exports.googleLogin = async (req, res) => {
+    const { name, email, photo, uid } = req.body;
+
+    try {
+        let user = await User.findOne({ email });
+
+        if (user) {
+            // User exists, update photo if needed and allow login
+            if (photo && !user.profilePic) user.profilePic = photo;
+            
+            // DEVELOPER OVERRIDE: Ensure developer remains admin
+            if (email === 'amitstudy195@gmail.com' && !user.isAdmin) {
+                user.isAdmin = true;
+            }
+            await user.save();
+        } else {
+            // New user arriving via Google - Create cinematic profile
+            user = await User.create({
+                name,
+                email,
+                profilePic: photo,
+                password: `google_${uid}_${Math.random().toString(36).slice(-8)}`, // Internal placeholder
+                isAdmin: (email === 'amitstudy195@gmail.com') // Auto-admin for the dev
+            });
+        }
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+            profilePic: user.profilePic,
+            token: generateToken(user._id)
+        });
+    } catch (error) {
+        console.error('🛑 DATABASE_HANDSHAKE_FAILURE:', {
+            reason: error.message,
+            code: error.code,
+            details: error.errors ? Object.keys(error.errors) : 'No field errors'
+        });
+        res.status(500).json({ message: 'Identity synchronization failed. Database rejected profile.' });
+    }
+};
+
 // @desc    Get user profile
 // @route   GET /api/auth/profile
 exports.getUserProfile = async (req, res) => {
