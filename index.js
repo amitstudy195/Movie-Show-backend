@@ -17,6 +17,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 🛡️ Security Headers for Production Handshakes (Fixes COOP/COEP issues)
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless'); 
+    next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
