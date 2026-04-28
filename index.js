@@ -14,13 +14,17 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all origins for production flexibility
+    exposedHeaders: ['x-rtb-fingerprint-id', 'request-id'] // Expose Razorpay-specific headers
+}));
 app.use(express.json());
 
-// 🛡️ Security Headers for Production Handshakes (Fixes COOP/COEP issues)
+// 🛡️ Security Headers for Production Handshakes (Fixes COOP/COEP/Permissions issues)
 app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless'); 
+    res.setHeader('Permissions-Policy', 'accelerometer=(self "https://checkout.razorpay.com"), gyroscope=(self "https://checkout.razorpay.com"), payment=(self)');
     next();
 });
 
