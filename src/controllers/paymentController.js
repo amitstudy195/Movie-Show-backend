@@ -15,6 +15,38 @@ const razorpay = new Razorpay({
 exports.createOrder = async (req, res) => {
     try {
         const { amount, bookingData } = req.body;
+        const { movieTitle, theaterName, showtime, showDate, seats } = bookingData;
+
+        // We only block seats if they are 'confirmed' or 'pending' (created within last 10 mins)
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
+        // 1. Mark stale pending bookings as cancelled in MongoDB
+        await Booking.updateMany(
+            { status: 'pending', createdAt: { $lt: tenMinutesAgo } },
+            { $set: { status: 'cancelled' } }
+        );
+
+        const existingBookings = await Booking.find({
+            movieTitle,
+            theaterName,
+            showtime,
+            showDate,
+            $or: [
+                { status: 'confirmed' },
+                { status: 'pending', createdAt: { $gte: tenMinutesAgo } }
+            ]
+        });
+
+        const alreadyBookedSeats = existingBookings.reduce((acc, b) => [...acc, ...b.seats], []);
+        const conflicts = seats.filter(seat => alreadyBookedSeats.includes(seat));
+
+        if (conflicts.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Seats ${conflicts.join(', ')} were just reserved by another user.`,
+                error: "SEAT_CONFLICT"
+            });
+        }
 
         let orderId;
         let isMock = true;
@@ -25,14 +57,14 @@ exports.createOrder = async (req, res) => {
         }
 
         try {
-            const hasRealKeys = process.env.RAZORPAY_KEY_ID && 
-                               process.env.RAZORPAY_KEY_ID.includes('rzp_');
+            const hasRealKeys = process.env.RAZORPAY_KEY_ID &&
+                process.env.RAZORPAY_KEY_ID.includes('rzp_');
 
             if (hasRealKeys) {
-                const razorOrder = await razorpay.orders.create({ 
-                    amount: Math.round(numericAmount * 100), 
-                    currency: "INR", 
-                    receipt: `receipt_${Date.now()}` 
+                const razorOrder = await razorpay.orders.create({
+                    amount: Math.round(numericAmount * 100),
+                    currency: "INR",
+                    receipt: `receipt_${Date.now()}`
                 });
                 orderId = razorOrder.id;
                 isMock = false;
@@ -55,7 +87,7 @@ exports.createOrder = async (req, res) => {
         try {
             booking = await Booking.create({
                 ...bookingData,
-                userId: req.user._id, 
+                userId: req.user._id,
                 userName: req.user.name,
                 totalPrice: amount,
                 orderId: orderId,
@@ -82,10 +114,10 @@ exports.createOrder = async (req, res) => {
             stack: err.stack,
             razorpay_error: err.error // Razorpay specific error object
         });
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: 'Error initiating transaction.', 
-            error: err.message 
+            message: 'Error initiating transaction.',
+            error: err.message
         });
     }
 };
@@ -95,10 +127,10 @@ exports.createOrder = async (req, res) => {
 // @access  Private
 exports.verifyPayment = async (req, res) => {
     try {
-        const { 
-            razorpay_order_id, 
-            razorpay_payment_id, 
-            razorpay_signature 
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
         } = req.body;
 
         // 1. Signature check (Automatically pass if it's a mock order)
@@ -110,7 +142,7 @@ exports.verifyPayment = async (req, res) => {
                 .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder')
                 .update(razorpay_order_id + "|" + razorpay_payment_id)
                 .digest('hex');
-            
+
             isVerified = (generated_signature === razorpay_signature || process.env.NODE_ENV === 'development');
         }
 
@@ -119,7 +151,7 @@ exports.verifyPayment = async (req, res) => {
             const booking = await Booking.findOneAndUpdate(
                 { orderId: razorpay_order_id },
                 { status: 'confirmed', paymentId: razorpay_payment_id },
-                { new: true }
+                { returnDocument: 'after' }
             );
 
             if (!booking) {
@@ -129,17 +161,14 @@ exports.verifyPayment = async (req, res) => {
             // 3. Trigger cinematic notifications
             try {
                 notificationService.sendEmailConfirmation(req.user.email, booking);
-                if (req.user.phone) {
-                    notificationService.sendSMSConfirmation(req.user.phone, booking);
-                }
             } catch (notifErr) {
                 console.error("Non-blocking notification error:", notifErr);
             }
 
-            res.json({ 
-                success: true, 
-                message: 'Payment verified securely', 
-                booking 
+            res.json({
+                success: true,
+                message: 'Payment verified securely',
+                booking
             });
         } else {
             res.status(400).json({ success: false, message: 'Security Breach: Invalid payment signature' });

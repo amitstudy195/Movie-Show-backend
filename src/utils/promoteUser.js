@@ -22,7 +22,7 @@ const promote = async () => {
         const user = await User.findOneAndUpdate(
             { email: email.toLowerCase() },
             { isAdmin: true },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!user) {

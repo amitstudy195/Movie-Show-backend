@@ -171,52 +171,37 @@ exports.getUserProfile = async (req, res) => {
     }
 };
 
-// @desc    Send OTP to phone or email
+// @desc    Send OTP to email
 // @route   POST /api/auth/send-otp
 exports.sendOTP = async (req, res) => {
-    const { phone, email } = req.body;
-    // Use cryptographically secure random values
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ message: "Email address is required" });
+    }
+
     const otp = crypto.randomInt(100000, 1000000).toString();
     const otpExpires = Date.now() + 10 * 60 * 1000;
 
     try {
-        let user;
-        if (phone) {
-            user = await User.findOne({ phone });
-            if (!user) {
-                user = await User.create({ 
-                    name: 'Cinema Fan', 
-                    phone, 
-                    email: `${phone}@mobile.com`, 
-                    password: `otp_${Math.random().toString(36).slice(-8)}` 
-                });
-            }
-        } else if (email) {
-            user = await User.findOne({ email });
-            if (!user) {
-                user = await User.create({ 
-                    name: 'Cinema Fan', 
-                    email, 
-                    password: `otp_${Math.random().toString(36).slice(-8)}` 
-                });
-            }
-        } else {
-            return res.status(400).json({ message: "Identifier (phone or email) required" });
+        let user = await User.findOne({ email });
+        
+        if (!user) {
+            user = await User.create({ 
+                name: 'Cinema Fan', 
+                email, 
+                password: `otp_${Math.random().toString(36).slice(-8)}` 
+            });
         }
         
         user.otp = otp;
         user.otpExpires = otpExpires;
         await user.save();
 
-        if (phone) {
-            await notificationService.sendSMSOTP(phone, otp);
-            console.log(`\n📱 SMS OTP DISPATCHED: [${phone}] -> ${otp}\n`);
-        } else if (email) {
-            await notificationService.sendEmailOTP(email, otp);
-            console.log(`\n✉️ EMAIL OTP DISPATCHED: [${email}] -> ${otp}\n`);
-        }
+        await notificationService.sendEmailOTP(email, otp);
+        console.log(`\n✉️ EMAIL OTP DISPATCHED: [${email}] -> ${otp}\n`);
 
-        res.json({ success: true, message: `OTP sent to your ${phone ? 'mobile' : 'email'}` });
+        res.json({ success: true, message: `OTP sent to your email` });
     } catch (err) {
         console.error('Send OTP Error:', err);
         res.status(500).json({ message: err.message || 'Internal Server Error' });
@@ -226,16 +211,13 @@ exports.sendOTP = async (req, res) => {
 // @desc    Verify OTP and login
 // @route   POST /api/auth/verify-otp
 exports.verifyOTP = async (req, res) => {
-    const { phone, email, otp } = req.body;
+    const { email, otp } = req.body;
     try {
-        const query = { 
+        const user = await User.findOne({ 
+            email,
             otp, 
             otpExpires: { $gt: Date.now() } 
-        };
-        if (phone) query.phone = phone;
-        if (email) query.email = email;
-
-        const user = await User.findOne(query);
+        });
 
         if (!user) {
             return res.status(401).json({ message: "Invalid or expired OTP" });

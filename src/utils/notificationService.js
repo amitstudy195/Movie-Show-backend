@@ -54,47 +54,6 @@ const notificationService = {
     },
 
     /**
-     * Sends a brief SMS confirmation (Fast2SMS Implementation)
-     */
-    sendSMSConfirmation: async (phoneNumber, booking) => {
-        try {
-            const axios = require('axios');
-            const apiKey = process.env.FAST2SMS_API_KEY;
-            
-            if (apiKey) {
-                await axios.get(`https://www.fast2sms.com/dev/bulkV2?authorization=${apiKey}&route=v3&sender_id=TXTIND&message=Booking confirmed! ${booking.movieTitle} at ${booking.theaterName}. ID: ${booking.bookingId}&language=english&flash=0&numbers=${phoneNumber}`);
-            }
-            
-            console.log(`📱 Fast2SMS: Automated Booking Confirmation triggered for: ${phoneNumber}`);
-            return true;
-        } catch (error) {
-            console.error('SMS Notification Error:', error);
-            return false;
-        }
-    },
-
-    /**
-     * Sends a secure 6-digit OTP via Fast2SMS
-     */
-    sendSMSOTP: async (phoneNumber, otp) => {
-        try {
-            const axios = require('axios');
-            const apiKey = process.env.FAST2SMS_API_KEY;
-
-            if (apiKey) {
-                // Using the 'otp' route for transactional reliability (variables_values={otp})
-                await axios.get(`https://www.fast2sms.com/dev/bulkV2?authorization=${apiKey}&route=otp&variables_values=${otp}&numbers=${phoneNumber}`);
-            }
-
-            console.log(`🔐 Fast2SMS: OTP [${otp}] dispatched to [${phoneNumber}]`);
-            return true;
-        } catch (error) {
-            console.error('OTP SMS Error:', error);
-            return false;
-        }
-    },
-    
-    /**
      * Sends a secure 6-digit OTP via Email
      */
     sendEmailOTP: async (email, otp) => {
